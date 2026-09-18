@@ -1,0 +1,112 @@
+<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>小書製作打卡器</title>
+<style>
+:root{--bg:#faf7f2;--card:#fff;--text:#332d28;--muted:#7b7068;--line:#e7ded5;--accent:#8b6f58;--soft:#eee4d9}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif}main{max-width:760px;margin:auto;padding:18px 14px 50px}
+h1{font-size:25px;margin:4px 0}.muted{color:var(--muted);font-size:13px}.big{font-size:34px;font-weight:800}.progress{height:12px;background:var(--line);border-radius:99px;overflow:hidden;margin:10px 0}.bar{height:100%;background:var(--accent)}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}.stat,.card{background:var(--card);border:1px solid var(--line);border-radius:16px}.stat{padding:12px}.stat b{font-size:20px}.card{padding:15px;margin:12px 0}.card h2{font-size:18px;margin:0 0 5px}
+.btns,.colors{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:10px 0}button,select{font:inherit;font-size:16px}button{min-height:46px;border:1px solid var(--line);background:#fff;border-radius:12px;padding:8px;color:var(--text)}button.active{outline:2px solid var(--accent);background:var(--soft)}button.primary{width:100%;background:var(--soft);font-weight:700;margin-top:8px}
+select{width:100%;min-height:48px;border:1px solid var(--line);border-radius:12px;background:#fff;padding:8px;margin:8px 0}.rows{display:grid;grid-template-columns:repeat(2,1fr);gap:6px 15px;font-size:14px}.row{display:flex;justify-content:space-between;border-bottom:1px dashed var(--line);padding:5px 0;gap:8px}.tip{margin-top:10px;padding:10px;background:var(--soft);border-radius:11px;font-size:13px;line-height:1.5}.actions{display:flex;gap:8px}.actions button{flex:1}.msg{font-size:13px;color:var(--muted);margin-top:9px;min-height:20px}
+.plan-day{padding:9px 0;border-bottom:1px dashed var(--line)}.plan-day:last-child{border-bottom:0}.today{background:var(--soft);border-radius:10px;padding:9px}.goalnum{font-weight:800}.doneMark{font-size:12px;color:var(--muted)}@media(min-width:600px){.grid{grid-template-columns:repeat(4,1fr)}.colors{grid-template-columns:repeat(4,1fr)}.rows{grid-template-columns:repeat(4,1fr)}}</style></head><body><main>
+<div class="muted">10/23 前備貨目標</div><h1>📖 小書製作打卡器</h1><div><span class="big" id="total"></span> / 168 本完整成品</div><div class="progress"><div id="bar" class="bar"></div></div><div class="muted">完整成品還差 <b id="left"></b> 本</div>
+<section class="grid" style="margin-top:14px"><div class="stat"><div class="muted">👂 耳環</div><b id="ear"></b><div class="muted" id="pairs"></div></div><div class="stat"><div class="muted">🔖 吊飾</div><b id="charm"></b><div class="muted">目標 48 本</div></div><div class="stat"><div class="muted">🧵 半成品</div><b id="wait"></b><div class="muted">目前皆為吊飾</div></div><div class="stat"><div class="muted">📦 總製作進度</div><b id="worked"></b><div class="muted">成品＋半成品</div></div></section>
+<section class="card"><h2>🧭 今天做哪一步？</h2>
+<div class="muted">每天先選今天主要做「第一步」或「第二步」。系統會依剩餘工作量與剩餘製作日，換算今天至少要完成幾本。可以超過，但不要低於最低目標。</div>
+<div class="btns"><button id="chooseStep1">🧵 第一步<br><span class="muted">縫＋上膠</span></button><button id="chooseStep2">✂️ 第二步<br><span class="muted">裁＋封面</span></button></div>
+<div id="stepGoalBox" class="tip"></div>
+<div class="progress"><div id="stepGoalBar" class="bar"></div></div>
+<div id="stepGoalDetail" class="muted"></div>
+</section>
+<section class="card"><h2>🎯 每日目標｜從 9/19 開始</h2>
+<div class="muted">我把剩餘 124 本成品排到 10/21 完成，10/22～10/23 留作補色、訂單與包裝緩衝。每日完成第二步後，這裡會自動顯示當天實際完成數。</div>
+<div id="todayGoal" class="tip"></div>
+<div id="weekDays"></div>
+</section>
+<section class="card"><h2>📅 每週目標</h2>
+<div class="muted">以「完整成品累積數」追蹤，耳環／吊飾一起計算。</div>
+<div class="rows" id="weeklyGoals"></div>
+<div class="tip">建議節奏：每週先做一批「縫＋上膠」，再集中完成「裁＋封面」。10/21 前完成全部 168 本。</div>
+</section>
+<section class="card"><h2>① 縫＋上膠</h2><div class="muted">選用途與蝴蝶頁；完成後進入半成品。</div><div class="btns"><button class="type active" data-v="ear">👂 耳環</button><button class="type" data-v="charm">🔖 吊飾</button></div><div class="colors" id="bfBtns"></div><button id="s1" class="primary">＋ 完成 1 本第一步</button></section>
+<section class="card"><h2>② 裁＋封面</h2><select id="pending"></select><div class="colors" id="cvBtns"></div><button id="s2" class="primary">✓ 完成 1 本成品</button></section>
+<section class="card"><h2>🦋 蝴蝶頁｜耳環區</h2><div class="rows" id="earBfStats"></div><div class="tip">這裡只統計「耳環」第一步的蝴蝶頁顏色。</div></section>
+<section class="card"><h2>🦋 蝴蝶頁｜吊飾區</h2><div class="rows" id="charmBfStats"></div><div class="tip">目前已預載吊飾半成品：綠2、黑1、白2、灰3、紅2、粉2，共12本。比例目標仍為紅1、白1、藍1、綠1、米1、灰2、粉2、黑3／每12本。</div></section>
+<section class="card"><h2>📚 封面成品｜耳環區</h2><div class="rows" id="earCvStats"></div><div class="tip">已預載：亮粉1對、亮白1對，其餘10色各2對，共22對＝44本。</div></section>
+<section class="card"><h2>📚 封面成品｜吊飾區</h2><div class="rows" id="charmCvStats"></div><div class="tip">吊飾目標 48 本，12 種封面色平均可先以每色 4 本為目標。</div></section>
+<div class="actions"><button id="undo">↩ 復原</button><button id="reset">恢復目前初始數據</button></div><div id="msg" class="msg"></div>
+<script>
+const KEY="miniBook168_v4_step_choice",bfs=["紅","白","藍","綠","米","灰","粉","黑"],covers=["格紋紅","格紋白","格紋藍","格紋綠","格紋棕","直紋紅","直紋黑","直紋灰綠","亮亮深粉","亮亮淺粉","亮亮白","亮亮棕金"];
+function initial(){
+ let pending=[],id=1;
+ const charmBf=[2,2,0,2,0,3,2,1];
+ charmBf.forEach((n,bf)=>{for(let k=0;k<n;k++)pending.push({id:id++,type:"charm",bf})});
+ let finished=[],earCv=covers.map((_,i)=>(i===8||i===10)?2:4);
+ covers.forEach((_,ci)=>{for(let k=0;k<earCv[ci];k++)finished.push({type:"ear",cover:ci,bf:null})});
+ return{pending,finished,
+  bfByType:{ear:Array(8).fill(0),charm:charmBf.slice()},
+  cvByType:{ear:earCv.slice(),charm:Array(12).fill(0)},
+  type:"ear",bf:0,cover:0,seq:id,history:[]}
+}
+let st=initial();try{let x=localStorage.getItem(KEY);if(x)st=JSON.parse(x)}catch(e){}
+if(!st.dailyChoice)st.dailyChoice={};
+if(!st.stage1Log)st.stage1Log={};
+if(!st.stage2Log)st.stage2Log={};
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+function snap(){let x={...st,history:[]};return JSON.stringify(x)}function save(){try{localStorage.setItem(KEY,JSON.stringify(st))}catch(e){}}
+bfs.forEach((n,i)=>{let b=document.createElement("button");b.textContent=n;b.dataset.i=i;b.onclick=()=>{st.bf=i;render()};$("#bfBtns").appendChild(b)});covers.forEach((n,i)=>{let b=document.createElement("button");b.textContent=n;b.dataset.i=i;b.onclick=()=>{st.cover=i;render()};$("#cvBtns").appendChild(b)});$$(".type").forEach(b=>b.onclick=()=>{st.type=b.dataset.v;render()});
+$("#s1").onclick=()=>{st.history.push(snap());st.bfByType[st.type][st.bf]++;st.pending.push({id:st.seq++,type:st.type,bf:st.bf});let k=localKey(new Date());st.stage1Log[k]=(st.stage1Log[k]||0)+1;$("#msg").textContent="已完成第一步："+(st.type==="ear"?"耳環":"吊飾")+"・"+bfs[st.bf];render()};
+$("#s2").onclick=()=>{let id=+$("#pending").value,i=st.pending.findIndex(x=>x.id===id);if(i<0){$("#msg").textContent="沒有半成品可完成。";return}st.history.push(snap());let x=st.pending.splice(i,1)[0];x.cover=st.cover;x.completedDate=localKey(new Date());st.finished.push(x);st.cvByType[x.type][st.cover]++;st.stage2Log[x.completedDate]=(st.stage2Log[x.completedDate]||0)+1;$("#msg").textContent="完成成品："+(x.type==="ear"?"耳環":"吊飾")+"・"+covers[st.cover];render()};
+$("#undo").onclick=()=>{let x=st.history.pop();if(!x)return $("#msg").textContent="沒有可復原的動作。";let h=st.history;st=JSON.parse(x);st.history=h;render()};
+$("#reset").onclick=()=>{if(confirm("要恢復成你這次提供的初始數據嗎？")){st=initial();render()}};
+function localKey(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
+function setChoice(step){let k=localKey(new Date());st.dailyChoice[k]=step;render()}
+$("#chooseStep1").onclick=()=>setChoice(1);
+$("#chooseStep2").onclick=()=>setChoice(2);
+function remainingProductionDays(today){
+ const finish=new Date(2026,9,21); if(today>finish)return 1;
+ const t=new Date(today.getFullYear(),today.getMonth(),today.getDate());
+ return Math.max(1,Math.round((finish-t)/86400000)+1);
+}
+function renderStepGoal(){
+ const today=new Date(), k=localKey(today), choice=st.dailyChoice[k]||0;
+ $("#chooseStep1").classList.toggle("active",choice===1);$("#chooseStep2").classList.toggle("active",choice===2);
+ const full=st.finished.length, pending=st.pending.length;
+ // Total Stage 1 requirement for 168 books: already-complete items implicitly passed stage 1.
+ const s1Done=full+pending, s1Remaining=Math.max(0,168-s1Done), s2Remaining=Math.max(0,168-full);
+ const days=remainingProductionDays(today);
+ // Minimum pace if every remaining calendar production day were available to that step.
+ const min1=Math.ceil(s1Remaining/days), min2=Math.ceil(s2Remaining/days);
+ const actual1=st.stage1Log[k]||0, actual2=st.stage2Log[k]||0;
+ if(!choice){$("#stepGoalBox").innerHTML="<b>請先選今天要做哪一步。</b><br>目前第一步還差 "+s1Remaining+" 本；第二步還差 "+s2Remaining+" 本。";$("#stepGoalBar").style.width="0%";$("#stepGoalDetail").textContent="選擇後會顯示今天不能低於的最低量。";return}
+ let goal=choice===1?min1:min2,actual=choice===1?actual1:actual2,left=Math.max(0,goal-actual),name=choice===1?"🧵 第一步｜縫＋上膠":"✂️ 第二步｜裁＋封面";
+ $("#stepGoalBox").innerHTML="<b>"+name+"</b><br>今天最低目標：<span class='goalnum'>"+goal+" 本</span>　｜　目前完成："+actual+" 本<br>"+(left?("今天至少還要做 <b>"+left+" 本</b>。可以多做，但不要少於 "+goal+" 本。"):"<b>✓ 今天最低目標已達成！</b> 還可以繼續多做。");
+ $("#stepGoalBar").style.width=(goal?Math.min(100,actual/goal*100):100)+"%";
+ $("#stepGoalDetail").textContent="截至 10/21：第一步剩 "+s1Remaining+" 本、第二步剩 "+s2Remaining+" 本；目前以剩餘 "+days+" 個製作日平均換算。";
+}
+function render(){let ef=st.finished.filter(x=>x.type==="ear").length,cf=st.finished.filter(x=>x.type==="charm").length,t=st.finished.length;$("#total").textContent=t;$("#left").textContent=Math.max(0,168-t);$("#bar").style.width=Math.min(100,t/168*100)+"%";$("#ear").textContent=ef+"/120 本";$("#pairs").textContent=Math.floor(ef/2)+"/60 對";$("#charm").textContent=cf+"/48 本";$("#wait").textContent=st.pending.length;$("#worked").textContent=(t+st.pending.length)+"/168";
+$$(".type").forEach(b=>b.classList.toggle("active",b.dataset.v===st.type));$$("#bfBtns button").forEach((b,i)=>b.classList.toggle("active",i===st.bf));$$("#cvBtns button").forEach((b,i)=>b.classList.toggle("active",i===st.cover));
+let p=$("#pending");p.innerHTML=st.pending.length?"":'<option value="">目前沒有半成品</option>';st.pending.forEach(x=>{let o=document.createElement("option");o.value=x.id;o.textContent="#"+x.id+"｜"+(x.type==="ear"?"耳環":"吊飾")+"｜"+bfs[x.bf]+"蝴蝶頁";p.appendChild(o)});
+$("#earBfStats").innerHTML=bfs.map((n,i)=>'<div class="row"><span>'+n+'</span><b>'+st.bfByType.ear[i]+'</b></div>').join("");
+$("#charmBfStats").innerHTML=bfs.map((n,i)=>'<div class="row"><span>'+n+'</span><b>'+st.bfByType.charm[i]+'</b></div>').join("");
+$("#earCvStats").innerHTML=covers.map((n,i)=>'<div class="row"><span>'+n+'</span><b>'+st.cvByType.ear[i]+'</b></div>').join("");
+$("#charmCvStats").innerHTML=covers.map((n,i)=>'<div class="row"><span>'+n+'</span><b>'+st.cvByType.charm[i]+'</b></div>').join("");
+renderPlan();renderStepGoal();save()}render();
+function renderPlan(){
+ const start=new Date(2026,8,19), finish=new Date(2026,9,21), base=44, remaining=124;
+ const days=Math.round((finish-start)/86400000)+1;
+ let plan=[],used=0;
+ for(let i=0;i<days;i++){let target=Math.floor((i+1)*remaining/days)-Math.floor(i*remaining/days);plan.push(target);used+=target}
+ const today=new Date(), key=d=>d.toISOString().slice(0,10), todayKey=key(today);
+ const made={};st.finished.forEach(x=>{if(x.completedDate)made[x.completedDate]=(made[x.completedDate]||0)+1});
+ let idx=Math.floor((today-start)/86400000); if(idx<0)idx=0;if(idx>=days)idx=days-1;
+ let cur=new Date(start);cur.setDate(cur.getDate()+idx);
+ let wkStart=new Date(cur);wkStart.setDate(cur.getDate()-((cur.getDay()+6)%7));if(wkStart<start)wkStart=new Date(start);
+ let wkEnd=new Date(wkStart);wkEnd.setDate(wkStart.getDate()+6);if(wkEnd>finish)wkEnd=new Date(finish);
+ let items=[],d=new Date(wkStart);
+ while(d<=wkEnd){let di=Math.round((d-start)/86400000),k=key(d),actual=made[k]||0;items.push('<div class="plan-day '+(k===todayKey?'today':'')+'"><b>'+ (d.getMonth()+1)+'/'+d.getDate()+'</b>　目標 <span class="goalnum">'+plan[di]+' 本</span>　<span class="doneMark">實際 '+actual+' 本'+(actual>=plan[di]?' ✓':'')+'</span></div>');d.setDate(d.getDate()+1)}
+ $("#weekDays").innerHTML=items.join("");
+ let actualToday=made[todayKey]||0,goalToday=(today>=start&&today<=finish)?plan[Math.round((today-start)/86400000)]:0;
+ $("#todayGoal").innerHTML=(today<start?'明天 9/19 開始，第一天目標 <b>'+plan[0]+' 本完整成品</b>。':today<=finish?'今天目標 <b>'+goalToday+' 本</b>，目前已完成 <b>'+actualToday+' 本</b>，還差 <b>'+Math.max(0,goalToday-actualToday)+' 本</b>。':'主要製作期已結束，現在是緩衝／整理期。');
+ const weeks=[['9/19–9/24',68],['9/25–10/1',94],['10/2–10/8',120],['10/9–10/15',146],['10/16–10/21',168],['10/22–10/23','緩衝']];
+ $("#weeklyGoals").innerHTML=weeks.map(w=>'<div class="row"><span>'+w[0]+'</span><b>'+(w[1]==='緩衝'?'補色／包裝':'累積 '+w[1]+' 本')+'</b></div>').join("");
+}
+</script></main></body></html>
