@@ -209,6 +209,99 @@ function renderDailyHistory(){const keys=[...new Set([...Object.keys(st.stage1Lo
  const weeks=[['9/19–9/24',68],['9/25–10/1',94],['10/2–10/8',120],['10/9–10/15',146],['10/16–10/21',168],['10/22–10/23','緩衝']];
  renderDailyHistory();$("#weeklyGoals").innerHTML=weeks.map(w=>'<div class="row"><span>'+w[0]+'</span><b>'+(w[1]==='緩衝'?'補色／包裝':'累積 '+w[1]+' 本')+'</b></div>').join("");
 }
-</script><div id="bottomTabs" style="position:fixed;left:50%;transform:translateX(-50%);bottom:8px;width:calc(100% - 24px);max-width:736px;display:grid;grid-template-columns:repeat(3,1fr);gap:6px;background:#fff;padding:7px;border:1px solid var(--line);border-radius:15px;z-index:99;box-shadow:0 4px 18px rgba(0,0,0,.10)">
+</script>
+<div id="cloudStatus" style="position:fixed;right:14px;top:10px;z-index:100;background:#fff;border:1px solid var(--line);border-radius:999px;padding:6px 10px;font-size:12px;box-shadow:0 2px 8px rgba(0,0,0,.08)">☁️ 準備同步</div>
+<div id="bottomTabs" style="position:fixed;left:50%;transform:translateX(-50%);bottom:8px;width:calc(100% - 24px);max-width:736px;display:grid;grid-template-columns:repeat(3,1fr);gap:6px;background:#fff;padding:7px;border:1px solid var(--line);border-radius:15px;z-index:99;box-shadow:0 4px 18px rgba(0,0,0,.10)">
 <button type="button" data-tab="make" class="tabBtn active">🧵 製作</button><button type="button" data-tab="adjust" class="tabBtn">🛍️ 異動</button><button type="button" data-tab="log" class="tabBtn">📒 紀錄</button>
-</div></main></body></html>
+</div></main>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
+import { getDatabase, ref, get, set, onValue } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyC8FkmRZpBDo9BnGeTHeW7NtO9h0doSAB4",
+  authDomain: "manshidai.firebaseapp.com",
+  databaseURL: "https://manshidai-default-rtdb.firebaseio.com",
+  projectId: "manshidai",
+  storageBucket: "manshidai.firebasestorage.app",
+  messagingSenderId: "766255581082",
+  appId: "1:766255581082:web:9da7e1696b7cde48445c23"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+const dataRef = ref(db, "miniBookTracker/main");
+let applyingCloud = false;
+let cloudReady = false;
+let saveTimer = null;
+
+function status(t) {
+  const el=document.getElementById("cloudStatus");
+  if(el) el.textContent=t;
+}
+
+async function startCloud() {
+  try {
+    status("☁️ 連線中…");
+    const snap = await get(dataRef);
+    const localRaw = localStorage.getItem(KEY);
+
+    if (snap.exists()) {
+      // Cloud already has data: cloud is source of truth.
+      applyingCloud = true;
+      st = snap.val();
+      // compatibility defaults
+      if(!st.sales)st.sales=[];
+      if(!st.defects)st.defects=[];
+      if(!st.actionLog)st.actionLog=[];
+      if(!st.stage1Log)st.stage1Log={};
+      if(!st.stage2Log)st.stage2Log={};
+      if(!st.dailyChoice)st.dailyChoice={};
+      localStorage.setItem(KEY,JSON.stringify(st));
+      render();
+      applyingCloud = false;
+      status("☁️ 已同步");
+    } else {
+      // First migration: upload this phone's current local state.
+      await set(dataRef, st);
+      status("☁️ 已上傳目前資料");
+    }
+
+    cloudReady = true;
+
+    onValue(dataRef, (ss) => {
+      if(!cloudReady || !ss.exists()) return;
+      const incoming=ss.val();
+      if(JSON.stringify(incoming)===JSON.stringify(st)) return;
+      applyingCloud=true;
+      st=incoming;
+      localStorage.setItem(KEY,JSON.stringify(st));
+      render();
+      applyingCloud=false;
+      status("☁️ 已同步");
+    });
+  } catch(e) {
+    console.error(e);
+    status("⚠️ 雲端連線失敗");
+  }
+}
+
+window.cloudSave = function() {
+  if(!cloudReady || applyingCloud) return;
+  clearTimeout(saveTimer);
+  saveTimer=setTimeout(async()=>{
+    try {
+      status("☁️ 同步中…");
+      await set(dataRef, st);
+      status("☁️ 已同步");
+    } catch(e) {
+      console.error(e);
+      status("⚠️ 同步失敗");
+    }
+  },250);
+};
+
+window.addEventListener("load", startCloud);
+</script>
+
+</body></html>
