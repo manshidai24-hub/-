@@ -173,7 +173,7 @@ $("#earBfStats").innerHTML=bfs.map((n,i)=>'<div class="row"><span>'+n+'</span><b
 $("#charmBfStats").innerHTML=bfs.map((n,i)=>'<div class="row"><span>'+n+'</span><b>'+st.bfByType.charm[i]+'</b></div>').join("");
 $("#earCvStats").innerHTML=covers.map((n,i)=>'<div class="row"><span>'+n+'</span><b>'+st.cvByType.ear[i]+'</b></div>').join("");
 $("#charmCvStats").innerHTML=covers.map((n,i)=>'<div class="row"><span>'+n+'</span><b>'+st.cvByType.charm[i]+'</b></div>').join("");
-renderDefects();renderSales();renderPlan();renderStepGoal();renderFullLog();save()}setupTabs();render();
+renderDefects();renderSales();renderPlan();renderStepGoal();renderFullLog();save()}render();window.addEventListener("DOMContentLoaded",setupTabs);
 function renderDailyHistory(){const keys=[...new Set([...Object.keys(st.stage1Log||{}),...Object.keys(st.stage2Log||{})])].sort().reverse();$("#dailyHistory").innerHTML=keys.length?keys.map(k=>{const p=k.split("-"),a=(st.stage1Log||{})[k]||0,b=(st.stage2Log||{})[k]||0;return '<div class="row"><span><b>'+Number(p[1])+'/'+Number(p[2])+'</b></span><span>第一步 '+a+'｜第二步 '+b+'｜完成成品 <b>'+b+' 本</b></span></div>'}).join(""):'<div class="muted">還沒有新的打卡紀錄。</div>';}function renderPlan(){
  const start=new Date(2026,8,19), finish=new Date(2026,9,21), base=44, remaining=124;
  const days=Math.round((finish-start)/86400000)+1;
