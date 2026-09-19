@@ -5,10 +5,16 @@
 h1{font-size:25px;margin:4px 0}.muted{color:var(--muted);font-size:13px}.big{font-size:34px;font-weight:800}.progress{height:12px;background:var(--line);border-radius:99px;overflow:hidden;margin:10px 0}.bar{height:100%;background:var(--accent)}
 .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}.stat,.card{background:var(--card);border:1px solid var(--line);border-radius:16px}.stat{padding:12px}.stat b{font-size:20px}.card{padding:15px;margin:12px 0}.card h2{font-size:18px;margin:0 0 5px}
 .btns,.colors{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:10px 0}button,select{font:inherit;font-size:16px}button{min-height:46px;border:1px solid var(--line);background:#fff;border-radius:12px;padding:8px;color:var(--text)}button.active{outline:2px solid var(--accent);background:var(--soft)}button.primary{width:100%;background:var(--soft);font-weight:700;margin-top:8px}
-select{width:100%;min-height:48px;border:1px solid var(--line);border-radius:12px;background:#fff;padding:8px;margin:8px 0}.rows{display:grid;grid-template-columns:repeat(2,1fr);gap:6px 15px;font-size:14px}.row{display:flex;justify-content:space-between;border-bottom:1px dashed var(--line);padding:5px 0;gap:8px}.tip{margin-top:10px;padding:10px;background:var(--soft);border-radius:11px;font-size:13px;line-height:1.5}.actions{display:flex;gap:8px}.actions button{flex:1}.msg{font-size:13px;color:var(--muted);margin-top:9px;min-height:20px}
+select{width:100%;min-height:48px;border:1px solid var(--line);border-radius:12px;background:#fff;padding:8px;margin:8px 0}.rows{display:grid;grid-template-columns:repeat(2,1fr);gap:6px 15px;font-size:14px}.row{display:flex;justify-content:space-between;border-bottom:1px dashed var(--line);padding:5px 0;gap:8px}.tip{margin-top:10px;padding:10px;background:var(--soft);border-radius:11px;font-size:13px;line-height:1.5}.actions{display:flex;gap:8px}.saleGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.saleLog{font-size:13px}.actions button{flex:1}.msg{font-size:13px;color:var(--muted);margin-top:9px;min-height:20px}
 .plan-day{padding:9px 0;border-bottom:1px dashed var(--line)}.plan-day:last-child{border-bottom:0}.today{background:var(--soft);border-radius:10px;padding:9px}.goalnum{font-weight:800}.doneMark{font-size:12px;color:var(--muted)}@media(min-width:600px){.grid{grid-template-columns:repeat(4,1fr)}.colors{grid-template-columns:repeat(4,1fr)}.rows{grid-template-columns:repeat(4,1fr)}}</style></head><body><main>
 <div class="muted">10/23 前備貨目標</div><h1>📖 小書製作打卡器</h1><div><span class="big" id="total"></span> / 168 本完整成品</div><div class="progress"><div id="bar" class="bar"></div></div><div class="muted">完整成品還差 <b id="left"></b> 本</div>
 <section class="grid" style="margin-top:14px"><div class="stat"><div class="muted">👂 耳環</div><b id="ear"></b><div class="muted" id="pairs"></div></div><div class="stat"><div class="muted">🔖 吊飾</div><b id="charm"></b><div class="muted">目標 48 本</div></div><div class="stat"><div class="muted">🧵 半成品</div><b id="wait"></b><div class="muted">目前皆為吊飾</div></div><div class="stat"><div class="muted">📦 總製作進度</div><b id="worked"></b><div class="muted">成品＋半成品</div></div></section>
+<section class="grid" style="margin-top:9px">
+<div class="stat"><div class="muted">🛍️ 已售出</div><b id="soldTotal">0 本</b><div class="muted" id="soldDetail">耳環 0 對｜吊飾 0 本</div></div>
+<div class="stat"><div class="muted">🎯 動態總目標</div><b id="dynamicTarget">168 本</b><div class="muted">168＋售出數量</div></div>
+<div class="stat"><div class="muted">📦 目前手上成品</div><b id="stockNow">44 本</b><div class="muted">累積完成－已售出</div></div>
+<div class="stat"><div class="muted">🧮 還需製作</div><b id="dynamicLeft">124 本</b><div class="muted">補回售出後仍保有 168 本</div></div>
+</section>
 <section class="card"><h2>🧭 今天做哪一步？</h2>
 <div class="muted">每天先選今天主要做「第一步」或「第二步」。系統會依剩餘工作量與剩餘製作日，換算今天至少要完成幾本。可以超過，但不要低於最低目標。</div>
 <div class="btns"><button id="chooseStep1">🧵 第一步<br><span class="muted">縫＋上膠</span></button><button id="chooseStep2">✂️ 第二步<br><span class="muted">裁＋封面</span></button></div>
@@ -20,6 +26,14 @@ select{width:100%;min-height:48px;border:1px solid var(--line);border-radius:12p
 <div class="muted">我把剩餘 124 本成品排到 10/21 完成，10/22～10/23 留作補色、訂單與包裝緩衝。每日完成第二步後，這裡會自動顯示當天實際完成數。</div>
 <div id="todayGoal" class="tip"></div>
 <div id="weekDays"></div>
+</section>
+<section class="card"><h2>🛍️ 售出／補做紀錄</h2>
+<div class="muted">售出不會刪掉你的「累積完成」紀錄，而是自動增加需要補做的目標。耳環 1 對＝2 本；吊飾 1 個＝1 本。</div>
+<div class="btns"><button id="saleEar" class="saleType active">👂 耳環</button><button id="saleCharm" class="saleType">🔖 吊飾</button></div>
+<select id="saleCover"></select>
+<div class="saleGrid"><select id="saleQty"></select><button id="recordSale" class="primary" style="margin-top:8px">－ 記錄售出</button></div>
+<div id="saleHint" class="tip"></div>
+<div class="rows saleLog" id="saleHistory" style="margin-top:10px"></div>
 </section>
 <section class="card"><h2>🗓️ 每日完成紀錄</h2><div class="muted">每次完成第一步或第二步都會自動記錄在當天；只有完成第二步才算完成 1 本成品。</div><div id="dailyHistory" class="rows" style="margin-top:10px"></div></section><section class="card"><h2>📅 每週目標</h2>
 <div class="muted">以「完整成品累積數」追蹤，耳環／吊飾一起計算。</div>
@@ -44,15 +58,15 @@ function initial(){
  return{pending,finished,
   bfByType:{ear:Array(8).fill(0),charm:charmBf.slice()},
   cvByType:{ear:earCv.slice(),charm:Array(12).fill(0)},
-  type:"ear",bf:0,cover:0,seq:id,history:[]}
+  type:"ear",bf:0,cover:0,seq:id,history:[],sales:[],saleType:"ear"}
 }
 let st=initial();try{let x=localStorage.getItem(KEY);if(x)st=JSON.parse(x)}catch(e){}
 if(!st.dailyChoice)st.dailyChoice={};
 if(!st.stage1Log)st.stage1Log={};
-if(!st.stage2Log)st.stage2Log={};
+if(!st.stage2Log)st.stage2Log={};if(!st.sales)st.sales=[];if(!st.saleType)st.saleType="ear";
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 function snap(){let x={...st,history:[]};return JSON.stringify(x)}function save(){try{localStorage.setItem(KEY,JSON.stringify(st))}catch(e){}}
-bfs.forEach((n,i)=>{let b=document.createElement("button");b.textContent=n;b.dataset.i=i;b.onclick=()=>{st.bf=i;render()};$("#bfBtns").appendChild(b)});covers.forEach((n,i)=>{let b=document.createElement("button");b.textContent=n;b.dataset.i=i;b.onclick=()=>{st.cover=i;render()};$("#cvBtns").appendChild(b)});$$(".type").forEach(b=>b.onclick=()=>{st.type=b.dataset.v;render()});
+bfs.forEach((n,i)=>{let b=document.createElement("button");b.textContent=n;b.dataset.i=i;b.onclick=()=>{st.bf=i;render()};$("#bfBtns").appendChild(b)});covers.forEach((n,i)=>{let b=document.createElement("button");b.textContent=n;b.dataset.i=i;b.onclick=()=>{st.cover=i;render()};$("#cvBtns").appendChild(b)});$$(".type").forEach(b=>b.onclick=()=>{st.type=b.dataset.v;render()});covers.forEach((n,i)=>{let o=document.createElement("option");o.value=i;o.textContent=n;$("#saleCover").appendChild(o)});$("#saleCover").onchange=()=>renderSales();
 $("#s1").onclick=()=>{st.history.push(snap());st.bfByType[st.type][st.bf]++;st.pending.push({id:st.seq++,type:st.type,bf:st.bf});let k=localKey(new Date());st.stage1Log[k]=(st.stage1Log[k]||0)+1;$("#msg").textContent="已完成第一步："+(st.type==="ear"?"耳環":"吊飾")+"・"+bfs[st.bf];render()};
 $("#s2").onclick=()=>{let id=+$("#pending").value,i=st.pending.findIndex(x=>x.id===id);if(i<0){$("#msg").textContent="沒有半成品可完成。";return}st.history.push(snap());let x=st.pending.splice(i,1)[0];x.cover=st.cover;x.completedDate=localKey(new Date());st.finished.push(x);st.cvByType[x.type][st.cover]++;st.stage2Log[x.completedDate]=(st.stage2Log[x.completedDate]||0)+1;$("#msg").textContent="完成成品："+(x.type==="ear"?"耳環":"吊飾")+"・"+covers[st.cover];render()};
 $("#undo").onclick=()=>{let x=st.history.pop();if(!x)return $("#msg").textContent="沒有可復原的動作。";let h=st.history;st=JSON.parse(x);st.history=h;render()};
@@ -71,7 +85,7 @@ function renderStepGoal(){
  $("#chooseStep1").classList.toggle("active",choice===1);$("#chooseStep2").classList.toggle("active",choice===2);
  const full=st.finished.length, pending=st.pending.length;
  // Total Stage 1 requirement for 168 books: already-complete items implicitly passed stage 1.
- const s1Done=full+pending, s1Remaining=Math.max(0,168-s1Done), s2Remaining=Math.max(0,168-full);
+ const target=168+soldBooks(),s1Done=full+pending,s1Remaining=Math.max(0,target-s1Done),s2Remaining=Math.max(0,target-full);
  const days=remainingProductionDays(today);
  // Minimum pace if every remaining calendar production day were available to that step.
  const min1=Math.ceil(s1Remaining/days), min2=Math.ceil(s2Remaining/days);
@@ -82,6 +96,27 @@ function renderStepGoal(){
  $("#stepGoalBar").style.width=(goal?Math.min(100,actual/goal*100):100)+"%";
  $("#stepGoalDetail").textContent="截至 10/21：第一步剩 "+s1Remaining+" 本、第二步剩 "+s2Remaining+" 本；目前以剩餘 "+days+" 個製作日平均換算。";
 }
+
+function soldBooks(){return (st.sales||[]).reduce((n,x)=>n+x.books,0)}
+function renderSales(){
+ const sold=soldBooks(),earPairs=(st.sales||[]).filter(x=>x.type==="ear").reduce((n,x)=>n+x.qty,0),charm=(st.sales||[]).filter(x=>x.type==="charm").reduce((n,x)=>n+x.qty,0);
+ $("#soldTotal").textContent=sold+" 本";$("#soldDetail").textContent="耳環 "+earPairs+" 對｜吊飾 "+charm+" 本";
+ $("#dynamicTarget").textContent=(168+sold)+" 本";$("#stockNow").textContent=Math.max(0,st.finished.length-sold)+" 本";$("#dynamicLeft").textContent=Math.max(0,168+sold-st.finished.length)+" 本";
+ $$(".saleType").forEach(b=>b.classList.toggle("active",(b.id==="saleEar"?"ear":"charm")===st.saleType));
+ let q=$("#saleQty"),max=st.saleType==="ear"?10:20;q.innerHTML="";for(let i=1;i<=max;i++){let o=document.createElement("option");o.value=i;o.textContent=i+(st.saleType==="ear"?" 對":" 本");q.appendChild(o)}
+ let qty=+(q.value||1);$("#saleHint").innerHTML=st.saleType==="ear"?"售出 <b>"+qty+" 對耳環</b>＝總製作目標增加 <b>"+(qty*2)+" 本</b>。":"售出 <b>"+qty+" 個吊飾</b>＝總製作目標增加 <b>"+qty+" 本</b>。";
+ const rows=[...(st.sales||[])].reverse().map(x=>'<div class="row"><span><b>'+x.date.slice(5).replace("-","/")+'</b> '+covers[x.cover]+'</span><span>'+(x.type==="ear"?"耳環 "+x.qty+" 對":"吊飾 "+x.qty+" 本")+'（+'+x.books+' 本）</span></div>');
+ $("#saleHistory").innerHTML=rows.length?rows.join(""):'<div class="muted">目前還沒有售出紀錄。</div>';
+}
+$("#saleEar").onclick=()=>{st.saleType="ear";render()};
+$("#saleCharm").onclick=()=>{st.saleType="charm";render()};
+$("#saleQty").onchange=()=>renderSales();
+$("#recordSale").onclick=()=>{
+ const type=st.saleType,qty=+$("#saleQty").value,cover=+$("#saleCover").value,books=type==="ear"?qty*2:qty;
+ const available=st.finished.filter(x=>x.type===type&&x.cover===cover).length-(st.sales||[]).filter(x=>x.type===type&&x.cover===cover).reduce((n,x)=>n+x.books,0);
+ if(available<books){$("#msg").textContent="目前「"+covers[cover]+"」可售庫存不足，這筆沒有扣除。";return}
+ st.history.push(snap());st.sales.push({date:localKey(new Date()),type,qty,books,cover});$("#msg").textContent="已記錄售出："+(type==="ear"?qty+" 對耳環":qty+" 個吊飾")+"；總目標增加 "+books+" 本。";render()
+};
 function render(){let ef=st.finished.filter(x=>x.type==="ear").length,cf=st.finished.filter(x=>x.type==="charm").length,t=st.finished.length;$("#total").textContent=t;$("#left").textContent=Math.max(0,168-t);$("#bar").style.width=Math.min(100,t/168*100)+"%";$("#ear").textContent=ef+"/120 本";$("#pairs").textContent=Math.floor(ef/2)+"/60 對";$("#charm").textContent=cf+"/48 本";$("#wait").textContent=st.pending.length;$("#worked").textContent=(t+st.pending.length)+"/168";
 $$(".type").forEach(b=>b.classList.toggle("active",b.dataset.v===st.type));$$("#bfBtns button").forEach((b,i)=>b.classList.toggle("active",i===st.bf));$$("#cvBtns button").forEach((b,i)=>b.classList.toggle("active",i===st.cover));
 let p=$("#pending");p.innerHTML=st.pending.length?"":'<option value="">目前沒有半成品</option>';st.pending.forEach(x=>{let o=document.createElement("option");o.value=x.id;o.textContent="#"+x.id+"｜"+(x.type==="ear"?"耳環":"吊飾")+"｜"+bfs[x.bf]+"蝴蝶頁";p.appendChild(o)});
@@ -89,7 +124,7 @@ $("#earBfStats").innerHTML=bfs.map((n,i)=>'<div class="row"><span>'+n+'</span><b
 $("#charmBfStats").innerHTML=bfs.map((n,i)=>'<div class="row"><span>'+n+'</span><b>'+st.bfByType.charm[i]+'</b></div>').join("");
 $("#earCvStats").innerHTML=covers.map((n,i)=>'<div class="row"><span>'+n+'</span><b>'+st.cvByType.ear[i]+'</b></div>').join("");
 $("#charmCvStats").innerHTML=covers.map((n,i)=>'<div class="row"><span>'+n+'</span><b>'+st.cvByType.charm[i]+'</b></div>').join("");
-renderPlan();renderStepGoal();save()}render();
+renderSales();renderPlan();renderStepGoal();save()}render();
 function renderDailyHistory(){const keys=[...new Set([...Object.keys(st.stage1Log||{}),...Object.keys(st.stage2Log||{})])].sort().reverse();$("#dailyHistory").innerHTML=keys.length?keys.map(k=>{const p=k.split("-"),a=(st.stage1Log||{})[k]||0,b=(st.stage2Log||{})[k]||0;return '<div class="row"><span><b>'+Number(p[1])+'/'+Number(p[2])+'</b></span><span>第一步 '+a+'｜第二步 '+b+'｜完成成品 <b>'+b+' 本</b></span></div>'}).join(""):'<div class="muted">還沒有新的打卡紀錄。</div>';}function renderPlan(){
  const start=new Date(2026,8,19), finish=new Date(2026,9,21), base=44, remaining=124;
  const days=Math.round((finish-start)/86400000)+1;
