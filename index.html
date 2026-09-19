@@ -76,6 +76,22 @@ let st=initial();try{let x=localStorage.getItem(KEY);if(x)st=JSON.parse(x)}catch
 if(!st.dailyChoice)st.dailyChoice={};
 if(!st.stage1Log)st.stage1Log={};
 if(!st.stage2Log)st.stage2Log={};if(!st.sales)st.sales=[];if(!st.saleType)st.saleType="ear";if(!st.defects)st.defects=[];if(!st.defectType)st.defectType="ear";if(!st.actionLog)st.actionLog=[];
+
+/* 一次性舊資料校正：
+   舊版 bfByType 是「第一步累積使用量」；新版要顯示「目前半成品庫存」。
+   pending 本身就是尚未完成第二步的半成品，因此直接依 pending 重建最準確。
+   只做一次，避免日後重複扣除。 */
+if(!st.butterflyPendingMigratedV1){
+  const rebuilt={ear:Array(8).fill(0),charm:Array(8).fill(0)};
+  (st.pending||[]).forEach(x=>{
+    if((x.type==="ear"||x.type==="charm") && Number.isInteger(x.bf) && x.bf>=0 && x.bf<8){
+      rebuilt[x.type][x.bf]++;
+    }
+  });
+  st.bfByType=rebuilt;
+  st.butterflyPendingMigratedV1=true;
+  try{localStorage.setItem(KEY,JSON.stringify(st));}catch(e){}
+}
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 function snap(){let x={...st,history:[]};return JSON.stringify(x)}function save(){try{localStorage.setItem(KEY,JSON.stringify(st))}catch(e){}}
 bfs.forEach((n,i)=>{let b=document.createElement("button");b.textContent=n;b.dataset.i=i;b.onclick=()=>{st.bf=i;render()};$("#bfBtns").appendChild(b)});covers.forEach((n,i)=>{let b=document.createElement("button");b.textContent=n;b.dataset.i=i;b.onclick=()=>{st.cover=i;render()};$("#cvBtns").appendChild(b)});$$(".type").forEach(b=>b.onclick=()=>{st.type=b.dataset.v;render()});covers.forEach((n,i)=>{let o=document.createElement("option");o.value=i;o.textContent=n;$("#saleCover").appendChild(o)});$("#saleCover").onchange=()=>renderSales();covers.forEach((n,i)=>{let o=document.createElement("option");o.value=i;o.textContent=n;$("#defectCover").appendChild(o)});$("#defectCover").onchange=()=>renderDefects();
