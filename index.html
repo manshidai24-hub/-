@@ -13,10 +13,11 @@ select{width:100%;min-height:48px;border:1px solid var(--line);border-radius:12p
 <div class="stat"><div class="muted">🛍️ 已售出</div><b id="soldTotal">0 本</b><div class="muted" id="soldDetail">耳環 0 對｜吊飾 0 本</div></div>
 <div class="stat"><div class="muted">🎯 動態總目標</div><b id="dynamicTarget">168 本</b><div class="muted">168＋售出數量</div></div>
 <div class="stat"><div class="muted">📦 目前手上成品</div><b id="stockNow">44 本</b><div class="muted">累積完成－已售出</div></div>
-<div class="stat"><div class="muted">🧮 還需製作</div><b id="dynamicLeft">124 本</b><div class="muted">補回售出後仍保有 168 本</div></div>
+<div class="stat"><div class="muted">⚠️ 瑕疵品</div><b id="defectTotal">0 本</b><div class="muted">瑕疵需重新補做</div></div>
+<div class="stat"><div class="muted">🧮 還需完成成品</div><b id="dynamicLeft">124 本</b><div class="muted">168＋售出＋瑕疵－累積完成</div></div>
 </section>
 <section class="card"><h2>🧭 今天做哪一步？</h2>
-<div class="muted">每天先選今天主要做「第一步」或「第二步」。系統會依剩餘工作量與剩餘製作日，換算今天至少要完成幾本。可以超過，但不要低於最低目標。</div>
+<div class="muted">一本小書要「第一步＋第二步」都完成才算 1 本成品。每日目標以「今天要推進多少本小書」計算；第一步只是把書做成半成品，不會另外算成一本文成品。</div>
 <div class="btns"><button id="chooseStep1">🧵 第一步<br><span class="muted">縫＋上膠</span></button><button id="chooseStep2">✂️ 第二步<br><span class="muted">裁＋封面</span></button></div>
 <div id="stepGoalBox" class="tip"></div>
 <div class="progress"><div id="stepGoalBar" class="bar"></div></div>
@@ -26,6 +27,14 @@ select{width:100%;min-height:48px;border:1px solid var(--line);border-radius:12p
 <div class="muted">我把剩餘 124 本成品排到 10/21 完成，10/22～10/23 留作補色、訂單與包裝緩衝。每日完成第二步後，這裡會自動顯示當天實際完成數。</div>
 <div id="todayGoal" class="tip"></div>
 <div id="weekDays"></div>
+</section>
+<section class="card"><h2>⚠️ 瑕疵品／補做紀錄</h2>
+<div class="muted">如果成品出現瑕疵，記錄後會自動增加需要補做的數量。耳環可用「本」記錄，避免一對中只有一支瑕疵時多算。</div>
+<div class="btns"><button id="defectEar" class="defectType active">👂 耳環</button><button id="defectCharm" class="defectType">🔖 吊飾</button></div>
+<select id="defectCover"></select>
+<div class="saleGrid"><select id="defectQty"></select><button id="recordDefect" class="primary" style="margin-top:8px">＋ 記錄瑕疵</button></div>
+<div id="defectHint" class="tip"></div>
+<div class="rows saleLog" id="defectHistory" style="margin-top:10px"></div>
 </section>
 <section class="card"><h2>🛍️ 售出／補做紀錄</h2>
 <div class="muted">售出不會刪掉你的「累積完成」紀錄，而是自動增加需要補做的目標。耳環 1 對＝2 本；吊飾 1 個＝1 本。</div>
@@ -58,15 +67,15 @@ function initial(){
  return{pending,finished,
   bfByType:{ear:Array(8).fill(0),charm:charmBf.slice()},
   cvByType:{ear:earCv.slice(),charm:Array(12).fill(0)},
-  type:"ear",bf:0,cover:0,seq:id,history:[],sales:[],saleType:"ear"}
+  type:"ear",bf:0,cover:0,seq:id,history:[],sales:[],saleType:"ear",defects:[],defectType:"ear"}
 }
 let st=initial();try{let x=localStorage.getItem(KEY);if(x)st=JSON.parse(x)}catch(e){}
 if(!st.dailyChoice)st.dailyChoice={};
 if(!st.stage1Log)st.stage1Log={};
-if(!st.stage2Log)st.stage2Log={};if(!st.sales)st.sales=[];if(!st.saleType)st.saleType="ear";
+if(!st.stage2Log)st.stage2Log={};if(!st.sales)st.sales=[];if(!st.saleType)st.saleType="ear";if(!st.defects)st.defects=[];if(!st.defectType)st.defectType="ear";
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 function snap(){let x={...st,history:[]};return JSON.stringify(x)}function save(){try{localStorage.setItem(KEY,JSON.stringify(st))}catch(e){}}
-bfs.forEach((n,i)=>{let b=document.createElement("button");b.textContent=n;b.dataset.i=i;b.onclick=()=>{st.bf=i;render()};$("#bfBtns").appendChild(b)});covers.forEach((n,i)=>{let b=document.createElement("button");b.textContent=n;b.dataset.i=i;b.onclick=()=>{st.cover=i;render()};$("#cvBtns").appendChild(b)});$$(".type").forEach(b=>b.onclick=()=>{st.type=b.dataset.v;render()});covers.forEach((n,i)=>{let o=document.createElement("option");o.value=i;o.textContent=n;$("#saleCover").appendChild(o)});$("#saleCover").onchange=()=>renderSales();
+bfs.forEach((n,i)=>{let b=document.createElement("button");b.textContent=n;b.dataset.i=i;b.onclick=()=>{st.bf=i;render()};$("#bfBtns").appendChild(b)});covers.forEach((n,i)=>{let b=document.createElement("button");b.textContent=n;b.dataset.i=i;b.onclick=()=>{st.cover=i;render()};$("#cvBtns").appendChild(b)});$$(".type").forEach(b=>b.onclick=()=>{st.type=b.dataset.v;render()});covers.forEach((n,i)=>{let o=document.createElement("option");o.value=i;o.textContent=n;$("#saleCover").appendChild(o)});$("#saleCover").onchange=()=>renderSales();covers.forEach((n,i)=>{let o=document.createElement("option");o.value=i;o.textContent=n;$("#defectCover").appendChild(o)});$("#defectCover").onchange=()=>renderDefects();
 $("#s1").onclick=()=>{st.history.push(snap());st.bfByType[st.type][st.bf]++;st.pending.push({id:st.seq++,type:st.type,bf:st.bf});let k=localKey(new Date());st.stage1Log[k]=(st.stage1Log[k]||0)+1;$("#msg").textContent="已完成第一步："+(st.type==="ear"?"耳環":"吊飾")+"・"+bfs[st.bf];render()};
 $("#s2").onclick=()=>{let id=+$("#pending").value,i=st.pending.findIndex(x=>x.id===id);if(i<0){$("#msg").textContent="沒有半成品可完成。";return}st.history.push(snap());let x=st.pending.splice(i,1)[0];x.cover=st.cover;x.completedDate=localKey(new Date());st.finished.push(x);st.cvByType[x.type][st.cover]++;st.stage2Log[x.completedDate]=(st.stage2Log[x.completedDate]||0)+1;$("#msg").textContent="完成成品："+(x.type==="ear"?"耳環":"吊飾")+"・"+covers[st.cover];render()};
 $("#undo").onclick=()=>{let x=st.history.pop();if(!x)return $("#msg").textContent="沒有可復原的動作。";let h=st.history;st=JSON.parse(x);st.history=h;render()};
@@ -85,7 +94,7 @@ function renderStepGoal(){
  $("#chooseStep1").classList.toggle("active",choice===1);$("#chooseStep2").classList.toggle("active",choice===2);
  const full=st.finished.length, pending=st.pending.length;
  // Total Stage 1 requirement for 168 books: already-complete items implicitly passed stage 1.
- const target=168+soldBooks(),s1Done=full+pending,s1Remaining=Math.max(0,target-s1Done),s2Remaining=Math.max(0,target-full);
+ const target=dynamicTarget(),s1Done=full+pending,s1Remaining=Math.max(0,target-s1Done),s2Remaining=Math.max(0,target-full);
  const days=remainingProductionDays(today);
  // Minimum pace if every remaining calendar production day were available to that step.
  const min1=Math.ceil(s1Remaining/days), min2=Math.ceil(s2Remaining/days);
@@ -97,11 +106,26 @@ function renderStepGoal(){
  $("#stepGoalDetail").textContent="截至 10/21：第一步剩 "+s1Remaining+" 本、第二步剩 "+s2Remaining+" 本；目前以剩餘 "+days+" 個製作日平均換算。";
 }
 
+
+function defectBooks(){return (st.defects||[]).reduce((n,x)=>n+x.qty,0)}
+function dynamicTarget(){return 168+soldBooks()+defectBooks()}
+function renderDefects(){
+ const n=defectBooks();$("#defectTotal").textContent=n+" 本";
+ $$(".defectType").forEach(b=>b.classList.toggle("active",(b.id==="defectEar"?"ear":"charm")===st.defectType));
+ let q=$("#defectQty");q.innerHTML="";for(let i=1;i<=20;i++){let o=document.createElement("option");o.value=i;o.textContent=i+" 本";q.appendChild(o)}
+ let qty=+(q.value||1);$("#defectHint").innerHTML="記錄 <b>"+qty+" 本瑕疵品</b>後，總製作目標會增加 <b>"+qty+" 本</b>。";
+ const rows=[...(st.defects||[])].reverse().map(x=>'<div class="row"><span><b>'+x.date.slice(5).replace("-","/")+'</b> '+covers[x.cover]+'</span><span>'+(x.type==="ear"?"耳環":"吊飾")+' '+x.qty+' 本（需補 '+x.qty+' 本）</span></div>');
+ $("#defectHistory").innerHTML=rows.length?rows.join(""):'<div class="muted">目前沒有瑕疵品紀錄。</div>';
+}
+$("#defectEar").onclick=()=>{st.defectType="ear";render()};
+$("#defectCharm").onclick=()=>{st.defectType="charm";render()};
+$("#defectQty").onchange=()=>renderDefects();
+$("#recordDefect").onclick=()=>{let qty=+$("#defectQty").value,cover=+$("#defectCover").value;st.history.push(snap());st.defects.push({date:localKey(new Date()),type:st.defectType,qty,cover});$("#msg").textContent="已記錄 "+qty+" 本瑕疵品；需要另外補做 "+qty+" 本。";render()};
 function soldBooks(){return (st.sales||[]).reduce((n,x)=>n+x.books,0)}
 function renderSales(){
  const sold=soldBooks(),earPairs=(st.sales||[]).filter(x=>x.type==="ear").reduce((n,x)=>n+x.qty,0),charm=(st.sales||[]).filter(x=>x.type==="charm").reduce((n,x)=>n+x.qty,0);
  $("#soldTotal").textContent=sold+" 本";$("#soldDetail").textContent="耳環 "+earPairs+" 對｜吊飾 "+charm+" 本";
- $("#dynamicTarget").textContent=(168+sold)+" 本";$("#stockNow").textContent=Math.max(0,st.finished.length-sold)+" 本";$("#dynamicLeft").textContent=Math.max(0,168+sold-st.finished.length)+" 本";
+ $("#dynamicTarget").textContent=dynamicTarget()+" 本";$("#stockNow").textContent=Math.max(0,st.finished.length-sold-defectBooks())+" 本";$("#dynamicLeft").textContent=Math.max(0,dynamicTarget()-st.finished.length)+" 本";
  $$(".saleType").forEach(b=>b.classList.toggle("active",(b.id==="saleEar"?"ear":"charm")===st.saleType));
  let q=$("#saleQty"),max=st.saleType==="ear"?10:20;q.innerHTML="";for(let i=1;i<=max;i++){let o=document.createElement("option");o.value=i;o.textContent=i+(st.saleType==="ear"?" 對":" 本");q.appendChild(o)}
  let qty=+(q.value||1);$("#saleHint").innerHTML=st.saleType==="ear"?"售出 <b>"+qty+" 對耳環</b>＝總製作目標增加 <b>"+(qty*2)+" 本</b>。":"售出 <b>"+qty+" 個吊飾</b>＝總製作目標增加 <b>"+qty+" 本</b>。";
@@ -124,7 +148,7 @@ $("#earBfStats").innerHTML=bfs.map((n,i)=>'<div class="row"><span>'+n+'</span><b
 $("#charmBfStats").innerHTML=bfs.map((n,i)=>'<div class="row"><span>'+n+'</span><b>'+st.bfByType.charm[i]+'</b></div>').join("");
 $("#earCvStats").innerHTML=covers.map((n,i)=>'<div class="row"><span>'+n+'</span><b>'+st.cvByType.ear[i]+'</b></div>').join("");
 $("#charmCvStats").innerHTML=covers.map((n,i)=>'<div class="row"><span>'+n+'</span><b>'+st.cvByType.charm[i]+'</b></div>').join("");
-renderSales();renderPlan();renderStepGoal();save()}render();
+renderDefects();renderSales();renderPlan();renderStepGoal();save()}render();
 function renderDailyHistory(){const keys=[...new Set([...Object.keys(st.stage1Log||{}),...Object.keys(st.stage2Log||{})])].sort().reverse();$("#dailyHistory").innerHTML=keys.length?keys.map(k=>{const p=k.split("-"),a=(st.stage1Log||{})[k]||0,b=(st.stage2Log||{})[k]||0;return '<div class="row"><span><b>'+Number(p[1])+'/'+Number(p[2])+'</b></span><span>第一步 '+a+'｜第二步 '+b+'｜完成成品 <b>'+b+' 本</b></span></div>'}).join(""):'<div class="muted">還沒有新的打卡紀錄。</div>';}function renderPlan(){
  const start=new Date(2026,8,19), finish=new Date(2026,9,21), base=44, remaining=124;
  const days=Math.round((finish-start)/86400000)+1;
@@ -139,7 +163,7 @@ function renderDailyHistory(){const keys=[...new Set([...Object.keys(st.stage1Lo
  let items=[],d=new Date(wkStart);
  while(d<=wkEnd){let di=Math.round((d-start)/86400000),k=key(d),actual=made[k]||0;items.push('<div class="plan-day '+(k===todayKey?'today':'')+'"><b>'+ (d.getMonth()+1)+'/'+d.getDate()+'</b>　目標 <span class="goalnum">'+plan[di]+' 本</span>　<span class="doneMark">實際 '+actual+' 本'+(actual>=plan[di]?' ✓':'')+'</span></div>');d.setDate(d.getDate()+1)}
  $("#weekDays").innerHTML=items.join("");
- let actualToday=made[todayKey]||0,goalToday=(today>=start&&today<=finish)?plan[Math.round((today-start)/86400000)]:0;
+ let actualToday=made[todayKey]||0,remainingDays=Math.max(1,Math.round((finish-today)/86400000)+1),goalToday=(today>=start&&today<=finish)?Math.ceil(Math.max(0,dynamicTarget()-st.finished.length)/remainingDays):0;
  $("#todayGoal").innerHTML=(today<start?'明天 9/19 開始，第一天目標 <b>'+plan[0]+' 本完整成品</b>。':today<=finish?'今天目標 <b>'+goalToday+' 本</b>，目前已完成 <b>'+actualToday+' 本</b>，還差 <b>'+Math.max(0,goalToday-actualToday)+' 本</b>。':'主要製作期已結束，現在是緩衝／整理期。');
  const weeks=[['9/19–9/24',68],['9/25–10/1',94],['10/2–10/8',120],['10/9–10/15',146],['10/16–10/21',168],['10/22–10/23','緩衝']];
  renderDailyHistory();$("#weeklyGoals").innerHTML=weeks.map(w=>'<div class="row"><span>'+w[0]+'</span><b>'+(w[1]==='緩衝'?'補色／包裝':'累積 '+w[1]+' 本')+'</b></div>').join("");
