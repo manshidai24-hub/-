@@ -1,7 +1,7 @@
 <!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>小書製作打卡器</title>
 <style>
 :root{--bg:#faf7f2;--card:#fff;--text:#332d28;--muted:#7b7068;--line:#e7ded5;--accent:#8b6f58;--soft:#eee4d9}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif}main{max-width:760px;margin:auto;padding:18px 14px 50px}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif}main{max-width:760px;margin:auto;padding:18px 14px 100px}
 h1{font-size:25px;margin:4px 0}.muted{color:var(--muted);font-size:13px}.big{font-size:34px;font-weight:800}.progress{height:12px;background:var(--line);border-radius:99px;overflow:hidden;margin:10px 0}.bar{height:100%;background:var(--accent)}
 .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}.stat,.card{background:var(--card);border:1px solid var(--line);border-radius:16px}.stat{padding:12px}.stat b{font-size:20px}.card{padding:15px;margin:12px 0}.card h2{font-size:18px;margin:0 0 5px}
 .btns,.colors{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:10px 0}button,select{font:inherit;font-size:16px}button{min-height:46px;border:1px solid var(--line);background:#fff;border-radius:12px;padding:8px;color:var(--text)}button.active{outline:2px solid var(--accent);background:var(--soft)}button.primary{width:100%;background:var(--soft);font-weight:700;margin-top:8px}
@@ -151,13 +151,21 @@ function renderFullLog(){
 }
 function setupTabs(){
  const cards=[...document.querySelectorAll("section.card")];
- cards.forEach(c=>{const h=(c.querySelector("h2")||{}).textContent||"";
-   if(h.includes("售出")||h.includes("瑕疵"))c.dataset.page="adjust";
-   else if(h.includes("紀錄"))c.dataset.page="log";
+ cards.forEach(c=>{
+   const h=(c.querySelector("h2")?.textContent||"");
+   if(h.includes("售出")||h.includes("瑕疵")) c.dataset.page="adjust";
+   else if(h.includes("紀錄")||h.includes("每日完成")) c.dataset.page="log";
    else c.dataset.page="make";
  });
- $$(".tabBtn").forEach(b=>b.onclick=()=>{const t=b.dataset.tab;$$(".tabBtn").forEach(x=>x.classList.toggle("active",x===b));cards.forEach(c=>c.style.display=(t==="all"||c.dataset.page===t)?"":"none");window.scrollTo({top:0,behavior:"smooth"})});
+ function showTab(t){
+   document.querySelectorAll(".tabBtn").forEach(b=>b.classList.toggle("active",b.dataset.tab===t));
+   cards.forEach(c=>c.style.display=(c.dataset.page===t)?"":"none");
+   window.scrollTo(0,0);
+ }
+ document.querySelectorAll(".tabBtn").forEach(b=>b.addEventListener("click",()=>showTab(b.dataset.tab)));
+ showTab("make");
 }
+
 function render(){let ef=st.finished.filter(x=>x.type==="ear").length,cf=st.finished.filter(x=>x.type==="charm").length,t=st.finished.length;$("#total").textContent=t;$("#left").textContent=Math.max(0,168-t);$("#bar").style.width=Math.min(100,t/168*100)+"%";$("#ear").textContent=ef+"/120 本";$("#pairs").textContent=Math.floor(ef/2)+"/60 對";$("#charm").textContent=cf+"/48 本";$("#wait").textContent=st.pending.length;$("#worked").textContent=(t+st.pending.length)+"/168";
 $$(".type").forEach(b=>b.classList.toggle("active",b.dataset.v===st.type));$$("#bfBtns button").forEach((b,i)=>b.classList.toggle("active",i===st.bf));$$("#cvBtns button").forEach((b,i)=>b.classList.toggle("active",i===st.cover));
 let p=$("#pending");p.innerHTML=st.pending.length?"":'<option value="">目前沒有半成品</option>';st.pending.forEach(x=>{let o=document.createElement("option");o.value=x.id;o.textContent="#"+x.id+"｜"+(x.type==="ear"?"耳環":"吊飾")+"｜"+bfs[x.bf]+"蝴蝶頁";p.appendChild(o)});
@@ -185,6 +193,6 @@ function renderDailyHistory(){const keys=[...new Set([...Object.keys(st.stage1Lo
  const weeks=[['9/19–9/24',68],['9/25–10/1',94],['10/2–10/8',120],['10/9–10/15',146],['10/16–10/21',168],['10/22–10/23','緩衝']];
  renderDailyHistory();$("#weeklyGoals").innerHTML=weeks.map(w=>'<div class="row"><span>'+w[0]+'</span><b>'+(w[1]==='緩衝'?'補色／包裝':'累積 '+w[1]+' 本')+'</b></div>').join("");
 }
-</script><div id="bottomTabs" style="position:sticky;bottom:8px;display:grid;grid-template-columns:repeat(4,1fr);gap:5px;background:#fff;padding:7px;border:1px solid var(--line);border-radius:15px;margin-top:18px;z-index:5">
-<button data-tab="all" class="tabBtn active">全部</button><button data-tab="make" class="tabBtn">製作</button><button data-tab="adjust" class="tabBtn">異動</button><button data-tab="log" class="tabBtn">紀錄</button>
+</script><div id="bottomTabs" style="position:fixed;left:50%;transform:translateX(-50%);bottom:8px;width:calc(100% - 24px);max-width:736px;display:grid;grid-template-columns:repeat(3,1fr);gap:6px;background:#fff;padding:7px;border:1px solid var(--line);border-radius:15px;z-index:99;box-shadow:0 4px 18px rgba(0,0,0,.10)">
+<button type="button" data-tab="make" class="tabBtn active">🧵 製作</button><button type="button" data-tab="adjust" class="tabBtn">🛍️ 異動</button><button type="button" data-tab="log" class="tabBtn">📒 紀錄</button>
 </div></main></body></html>
